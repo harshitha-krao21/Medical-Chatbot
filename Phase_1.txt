@@ -1,0 +1,51 @@
+Phase 1 - Setup Memory for LLM (Vector Database)
+This phase involves setting up the memory of the chatbot by processing PDF documents, breaking them down into smaller chunks, creating vector embeddings for those chunks, and finally storing the embeddings in a vector database (FAISS) for efficient retrieval.
+
+Step 1: Load Raw PDFs
+
+Goal: Load raw PDF files from a specific directory (data/) into a format that can be processed by the system.
+
+Steps:
+
+DirectoryLoader: This is used to load all PDF files from the specified data/ folder. The glob='*.pdf' argument ensures that only PDF files are considered.
+
+PyPDFLoader: This class is used to extract text from the PDFs. It reads the content and converts it into a list of documents (each document is a page or section of the PDF).
+loader.load(): This command loads the PDF files and returns a list of documents. Each document corresponds to the extracted content from a page or section of a PDF file.
+
+The total number of documents loaded (i.e., the number of pages or sections in the PDFs) is printed using print("Length of PDF pages: ", len(documents)).
+
+Step 2: Create Chunks
+
+Goal: Split the raw document data into smaller chunks of text that can be efficiently processed and embedded for vector storage.
+
+Steps:
+
+RecursiveCharacterTextSplitter: This class splits long documents into smaller chunks based on a specified chunk_size and chunk_overlap.
+
+chunk_size=500: Each chunk will contain up to 500 characters of text.
+chunk_overlap=50: Each chunk will overlap with the next one by 50 characters. This overlap ensures that the context is maintained between chunks and prevents losing important information at the chunk boundaries.
+split_documents(extracted_data): This method splits the documents into chunks based on the parameters specified. The result is a list of text chunks, each containing up to 500 characters.
+
+The total number of chunks is printed using print("Length of Text Chunks: ", len(text_chunks)).
+
+Step 3: Create Vector Embeddings
+
+Goal: Convert the chunks of text into vector embeddings that can be used for efficient semantic search and similarity matching.
+Steps:
+
+HuggingFaceEmbeddings: This class is used to load a pre-trained embedding model from Hugging Face's model hub. The model used here is sentence-transformers/all-MiniLM-L6-v2, a popular model for generating sentence embeddings.
+The model transforms text into vectors (embeddings) in a high-dimensional space where semantically similar texts are closer together.
+get_embedding_model(): This function simply returns the embedding model. The model will later be used to generate embeddings for each chunk of text.
+
+Step 4: Store Embeddings in FAISS
+
+Goal: Store the vector embeddings in a FAISS database for fast retrieval during the chatbot’s query process.
+Steps:
+
+FAISS: FAISS (Facebook AI Similarity Search) is a library for efficient similarity search and clustering of dense vectors. It’s designed to work with large-scale datasets, making it a great choice for storing and querying embeddings.
+
+FAISS.from_documents(text_chunks, embedding_model): This command creates a FAISS vector store from the list of text chunks and their corresponding embeddings (created by the embedding model). Each chunk is represented as a vector, and FAISS will store these vectors in a format optimized for similarity search.
+
+db.save_local(DB_FAISS_PATH): This saves the vector store locally at the path specified (vectorstore/db_faiss). This allows the vector store to be reloaded in the future without having to recompute the embeddings.
+
+

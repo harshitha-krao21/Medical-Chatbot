@@ -1,0 +1,38 @@
+# Function: Set Custom Prompt for LLM
+
+This function defines a custom prompt template that will be used by the LLM to answer user queries.
+PromptTemplate: LangChain’s utility to format prompts. It uses placeholders ({context} and {question}) that will be replaced with the actual context and question when the LLM is invoked.
+
+Function: Load the LLM (Mistral)
+
+load_llm(): This function loads the Mistral model hosted on Hugging Face.
+repo_id: Specifies the Hugging Face model ID (mistralai/Mistral-7B-Instruct-v0.3).
+temperature=0.5: Controls the randomness of the model’s responses.
+model_kwargs: Contains additional parameters like the Hugging Face API token (HF_TOKEN) and maximum response length (max_length=512).
+
+Streamlit UI and RAG Integration
+
+Explanation:
+
+main(): This is the main function that defines the Streamlit UI and handles the chatbot’s logic.
+st.title("Ask Chatbot!"): Sets the title of the Streamlit app.
+Session State:
+st.session_state is used to keep track of the conversation history, ensuring the chatbot remembers previous messages. It stores the conversation in st.session_state.messages, where each message is stored with the role (either 'user' or 'assistant') and content.
+st.chat_input("Pass your prompt here"): Displays a text input field for the user to type their query.
+User's Query: Once the user submits a query, it is displayed in the chat using st.chat_message('user').markdown(prompt) and added to the conversation history.
+Custom Prompt Template: The CUSTOM_PROMPT_TEMPLATE is used to instruct the LLM on how to respond to queries.
+Load the FAISS Vector Store: The get_vectorstore() function loads the FAISS vector store, which is used to retrieve relevant documents for the query.
+QA Chain: The qa_chain is created by combining the LLM and the FAISS retriever:
+chain_type="stuff": Specifies the type of chain (this means the whole context will be used for answering).
+retriever=vectorstore.as_retriever(search_kwargs={'k': 3}): Retrieves the top 3 documents based on the query.
+return_source_documents=True: The retrieved documents are included in the response.
+prompt: The custom prompt template is used to guide the LLM’s response.
+Invoke the Chain: The qa_chain.invoke({'query': prompt}) method runs the question-answering chain and generates the response.
+Display Result: The chatbot’s response (and the source documents used) are displayed in the UI using st.chat_message('assistant').markdown(result_to_show).
+Error Handling: If an error occurs, it is caught and displayed using st.error(f"Error: {str(e)}").
+
+Summary of Phase 3:
+Streamlit UI: Creates an interactive web interface for the chatbot.
+Vector Store Loading: The FAISS vector store is loaded into memory using caching for performance optimization.
+RAG Integration: Combines the Mistral LLM with the FAISS retriever to process user queries and return context-aware answers.
+Prompt Customization: Defines a custom prompt to ensure that the LLM generates accurate answers based on the retrieved documents.

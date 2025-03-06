@@ -1,0 +1,58 @@
+Phase 2 - Connect Memory with LLM
+
+Step 1: Setup LLM (Mistral with HuggingFace)
+
+Goal: Set up and load the Mistral-7B-Instruct LLM from Hugging Face.
+HF_TOKEN: Retrieves your Hugging Face API token (from the environment variables) to authenticate and interact with Hugging Face's API.
+HUGGINGFACE_REPO_ID: The ID of the model you want to use, in this case, the Mistral-7B-Instruct model, which is an instruction-following model designed for conversational tasks.
+HuggingFaceEndpoint: This is a LangChain utility that loads the model from Hugging Face's API. It allows you to interact with the model by specifying:
+repo_id: The model's repository ID (Hugging Face's model hub ID).
+temperature=0.5: Controls the randomness of the model’s responses. A temperature of 0.5 is a balance between creativity and accuracy.
+model_kwargs: Additional model parameters, such as the API token (HF_TOKEN) and the maximum response length (max_length=512).
+The load_llm() function initializes and returns an endpoint for the Mistral LLM.
+
+Step 2: Connect LLM with FAISS and Create Chain
+
+Goal: Set up the retrieval-augmented generation (RAG) chain that combines the LLM (Mistral) and the FAISS vector store to retrieve relevant documents and generate answers based on the user's query.
+
+Steps:
+
+Custom Prompt Template: This template defines how the LLM should respond when given the context and question:
+
+It emphasizes answering only using the provided context and instructs the LLM to not "make up" answers if the context doesn’t have the answer.
+The context and question are placeholders ({context} and {question}) that will be filled dynamically when the chain is invoked.
+set_custom_prompt function: This function creates a PromptTemplate object that will be used in the LLM to structure the query-response format. The input_variables specify that the LLM expects two variables: context and question.
+
+Load FAISS Database:
+
+DB_FAISS_PATH: The path where the FAISS vector store was saved in Phase 1 (vectorstore/db_faiss).
+FAISS.load_local(): Loads the FAISS database and its associated embeddings. It uses the embedding model (HuggingFaceEmbeddings) to ensure that the FAISS database and embedding model are compatible.
+The allow_dangerous_deserialization=True argument allows the FAISS vector store to be loaded even if there is a risk of deserialization issues (use with caution).
+Create the QA Chain:
+
+RetrievalQA.from_chain_type(): This function creates a chain that combines the retrieval and question-answering process:
+llm=load_llm(HUGGINGFACE_REPO_ID): This specifies that the LLM (Mistral model) will be used to answer the queries.
+retriever=db.as_retriever(search_kwargs={'k': 3}): The retriever is set up to search the FAISS database and return the top 3 relevant documents for each query (k=3).
+return_source_documents=True: This ensures that the source documents (i.e., the documents retrieved from the FAISS database) are returned alongside the generated answer.
+chain_type_kwargs={'prompt': set_custom_prompt(CUSTOM_PROMPT_TEMPLATE)}: The custom prompt template is passed to the LLM to structure the query-answer interaction.
+
+Step 3: Create Question-Answer Chain
+
+Goal: Invoke the question-answering chain with a user query and retrieve the response.
+Steps:
+
+User Input: The system prompts the user to input a query (Write Query Here: ).
+
+Invoke the Chain: The qa_chain.invoke({'query': user_query}) command triggers the retrieval-augmented generation process:
+
+The chain retrieves the top 3 relevant documents from the FAISS vector store based on the query.
+The LLM (Mistral) then generates an answer using the retrieved documents and the custom prompt.
+Print the Results:
+
+response["result"]: The generated answer from the LLM based on the retrieved context.
+response["source_documents"]: The documents retrieved from the FAISS database that were used to generate the answer.
+
+Summary of Phase 2:
+Step 1 sets up the Mistral LLM (using Hugging Face’s API) for question answering.
+Step 2 connects the FAISS database (created in Phase 1) to the LLM, setting up the retrieval-augmented generation (RAG) process. This involves creating a custom prompt for the LLM and configuring the question-answering chain.
+Step 3 allows the user to query the system. The system retrieves relevant documents from the FAISS vector store and uses the LLM to generate a context-aware answer.
