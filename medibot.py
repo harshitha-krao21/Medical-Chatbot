@@ -20,12 +20,12 @@ def get_vectorstore():
     db=FAISS.load_local(DB_FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
     return db
 
-
+# Function: Set Custom Prompt for LLM
 def set_custom_prompt(custom_prompt_template):
     prompt=PromptTemplate(template=custom_prompt_template, input_variables=["context", "question"])
     return prompt
 
-
+# Function: Load the LLM (Mistral)
 def load_llm(huggingface_repo_id, HF_TOKEN):
     llm=HuggingFaceEndpoint(
         repo_id=huggingface_repo_id,
@@ -35,7 +35,7 @@ def load_llm(huggingface_repo_id, HF_TOKEN):
     )
     return llm
 
-
+# Streamlit UI and RAG Integration
 def main():
     st.title("Ask Chatbot!")
 
